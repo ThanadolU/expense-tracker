@@ -1,0 +1,18 @@
+// Prisma 7: do NOT put `url` here.
+// Connection URL lives in prisma.config.ts (migrate) and in the client adapter (runtime).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Phase 0 stub — expand in later phases
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
