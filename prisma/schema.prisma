@@ -10,9 +10,12 @@ datasource db {
   provider = "postgresql"
 }
 
-// Phase 0 stub — expand in later phases
+// Auth.js credentials + JWT: app-owned User table (no Account/Session tables required for Phase 1)
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

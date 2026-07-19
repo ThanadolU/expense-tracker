@@ -12,6 +12,7 @@ Planning docs live in the parent repo folder: [`../planning/`](../planning/).
 | Language | TypeScript |
 | Styling | Tailwind CSS |
 | ORM | Prisma 7 |
+| Auth | Auth.js v5 (`next-auth`) — email/password (Phase 1) |
 | Database | PostgreSQL (local + production) |
 | Deploy target | Vercel + hosted Postgres |
 
@@ -66,9 +67,14 @@ DATABASE_URL="postgresql://newuser@localhost:5432/expense_tracker?schema=public"
 
 # Docker example (if mapped to host port 5433):
 # DATABASE_URL="postgresql://postgres:postgres@localhost:5433/expense_tracker?schema=public"
+
+# Auth.js — required for sessions (generate a unique value per environment)
+#   openssl rand -base64 32
+#   # or: npx auth secret
+AUTH_SECRET="your-long-random-secret"
 ```
 
-Never commit `.env` (it is gitignored).
+Never commit `.env` (it is gitignored). Use a **different** `AUTH_SECRET` in production than in local dev.
 
 ### 3. Migrate & generate Prisma Client
 
@@ -92,6 +98,16 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+You should land on **login** (or **dashboard** if already signed in). Create an account at `/register` (password at least 8 characters).
+
+### Auth routes
+
+| Path | Access |
+| --- | --- |
+| `/login`, `/register` | Public (redirect to dashboard if already logged in) |
+| `/dashboard`, `/expenses`, `/categories` | Authenticated only |
+| `/api/auth/*` | Auth.js handlers |
 
 ---
 
