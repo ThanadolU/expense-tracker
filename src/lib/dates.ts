@@ -149,3 +149,48 @@ export function toMonthInputValue(year: number, month: number): string {
 export function toMonthInputValueFrom(ym: YearMonth): string {
   return toMonthInputValue(ym.year, ym.month);
 }
+
+/**
+ * Recent months newest-first (for filter dropdowns).
+ * @param count how many months to include (default 24)
+ */
+export function recentYearMonths(
+  count = 24,
+  now: Date = new Date(),
+): YearMonth[] {
+  const result: YearMonth[] = [];
+  let year = now.getFullYear();
+  let month = now.getMonth() + 1;
+
+  for (let i = 0; i < count; i++) {
+    result.push({ year, month });
+    month -= 1;
+    if (month < 1) {
+      month = 12;
+      year -= 1;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Resolve month filter for the expenses list.
+ * - missing param → current month (default)
+ * - `all` / empty → all months (no date filter)
+ * - valid `YYYY-MM` → that month
+ * - invalid → current month
+ */
+export function resolveExpenseMonthParam(
+  value: string | null | undefined,
+  now: Date = new Date(),
+): YearMonth | null {
+  if (value == null) {
+    return currentYearMonth(now);
+  }
+  const trimmed = value.trim().toLowerCase();
+  if (trimmed === "" || trimmed === "all") {
+    return null;
+  }
+  return parseMonthParam(value) ?? currentYearMonth(now);
+}

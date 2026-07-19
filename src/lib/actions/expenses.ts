@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireUserId } from "@/lib/auth-utils";
 import { DEFAULT_CURRENCY } from "@/lib/constants";
+import { spentAtMonthFilter } from "@/lib/dates";
 import { prisma } from "@/lib/prisma";
 
 export type ExpenseFormState = {
@@ -201,9 +202,39 @@ export async function deleteExpenseAction(
   return { success: "Expense deleted." };
 }
 
-export async function listExpensesForUser(userId: string) {
+export type ListExpensesFilters = {
+  /** null = all months */
+  yearMonth?: { year: number; month: number } | null;
+  /** null/undefined = all categories; only applied if owned by user */
+  categoryId?: string | null;
+};
+
+export async function listExpensesForUser(
+  userId: string,
+  filters: ListExpensesFilters = {},
+) {
+  const where: {
+    userId: string;
+    spentAt?: { gte: Date; lt: Date };
+    categoryId?: string;
+  } = { userId };
+
+  if (filters.yearMonth) {
+    where.spentAt = spentAtMonthFilter(
+      filters.yearMonth.year,
+      filters.yearMonth.month,
+    );
+  }
+
+  if (filters.categoryId) {
+    const owned = await assertCategoryOwned(filters.categoryId, userId);
+    if (owned) {
+      where.categoryId = filters.categoryId;
+    }
+  }
+
   return prisma.expense.findMany({
-    where: { userId },
+    where,
     include: {
       category: { select: { id: true, name: true } },
     },
