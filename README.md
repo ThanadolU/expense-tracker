@@ -99,6 +99,16 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+You should land on **login** (or **dashboard** if already signed in). Create an account at `/register` (password at least 8 characters).
+
+### Auth routes
+
+| Path | Access |
+| --- | --- |
+| `/login`, `/register` | Public (redirect to dashboard if already logged in) |
+| `/dashboard`, `/expenses`, `/categories` | Authenticated only |
+| `/api/auth/*` | Auth.js handlers |
+
 ---
 
 ## Prisma 7 notes (important)

@@ -1,11 +1,18 @@
-export default function DashboardPage() {
+import { auth } from "@/auth";
+
+export default async function DashboardPage() {
+  const session = await auth();
+  const displayName =
+    session?.user?.name || session?.user?.email || "there";
+
   return (
     <div className="space-y-2">
       <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
         Dashboard
       </h1>
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        Monthly totals and category breakdown will go here (Phase 3).
+        Welcome, {displayName}. Monthly totals and category breakdown will go
+        here (Phase 3).
       </p>
     </div>
   );
