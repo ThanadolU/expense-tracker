@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   ExpenseRow,
   type ExpenseListItem,
@@ -7,14 +8,30 @@ import type { CategoryOption } from "@/components/expenses/expense-create-form";
 type ExpenseListProps = {
   expenses: ExpenseListItem[];
   categories: CategoryOption[];
+  /** When filters match nothing vs truly no expenses */
+  emptyMessage?: string;
+  showClearFilters?: boolean;
 };
 
-export function ExpenseList({ expenses, categories }: ExpenseListProps) {
+export function ExpenseList({
+  expenses,
+  categories,
+  emptyMessage = "No expenses yet. Add one above to start tracking.",
+  showClearFilters = false,
+}: ExpenseListProps) {
   if (expenses.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-zinc-300 bg-white px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400">
-        No expenses yet. Add one above to start tracking.
-      </p>
+      <div className="rounded-lg border border-dashed border-zinc-300 bg-white px-4 py-8 text-center dark:border-zinc-700 dark:bg-zinc-900">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">{emptyMessage}</p>
+        {showClearFilters ? (
+          <Link
+            href="/expenses?month=all"
+            className="mt-3 inline-flex text-sm font-medium text-zinc-900 underline-offset-2 hover:underline dark:text-zinc-100"
+          >
+            Clear filters
+          </Link>
+        ) : null}
+      </div>
     );
   }
 

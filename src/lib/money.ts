@@ -9,7 +9,11 @@ export function formatMoney(
   if (Number.isNaN(n)) {
     return `${amount} ${currency}`;
   }
-  return `${n.toFixed(2)} ${currency}`;
+  const formatted = n.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `${formatted} ${currency}`;
 }
 
 /** Format a Date or ISO date string as YYYY-MM-DD for display/inputs. */
