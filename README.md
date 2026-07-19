@@ -14,6 +14,7 @@ Planning docs live in the parent repo folder: [`../planning/`](../planning/).
 | ORM | Prisma 7 |
 | Auth | Auth.js v5 (`next-auth`) — email/password (Phase 1) |
 | Database | PostgreSQL (local + production) |
+| Default currency | **THB** (single-currency MVP; see `src/lib/constants.ts`) |
 | Deploy target | Vercel + hosted Postgres |
 
 ## Prerequisites
