@@ -3,6 +3,7 @@
 import { hash } from "bcryptjs";
 import { AuthError } from "next-auth";
 import { signIn, signOut } from "@/auth";
+import { ensureDefaultCategories } from "@/lib/categories";
 import { prisma } from "@/lib/prisma";
 
 export type AuthFormState = {
@@ -57,13 +58,15 @@ export async function registerAction(
 
   const passwordHash = await hash(password, 12);
 
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
       email,
       passwordHash,
       name,
     },
   });
+
+  await ensureDefaultCategories(user.id);
 
   try {
     await signIn("credentials", {

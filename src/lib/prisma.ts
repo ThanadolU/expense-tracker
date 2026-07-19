@@ -15,8 +15,35 @@ function createPrismaClient() {
   return new PrismaClient({ adapter });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+/**
+ * In dev, Next.js keeps a global Prisma client across hot reloads.
+ * After schema changes (e.g. adding Category), that cached instance can be
+ * missing new model delegates (`prisma.category === undefined`).
+ * Drop and recreate the client when expected models are missing.
+ */
+function getPrismaClient(): PrismaClient {
+  const cached = globalForPrisma.prisma;
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+  if (
+    cached &&
+    typeof cached === "object" &&
+    "category" in cached &&
+    cached.category != null &&
+    "expense" in cached &&
+    cached.expense != null &&
+    "user" in cached &&
+    cached.user != null
+  ) {
+    return cached;
+  }
+
+  const client = createPrismaClient();
+
+  if (process.env.NODE_ENV !== "production") {
+    globalForPrisma.prisma = client;
+  }
+
+  return client;
 }
+
+export const prisma = getPrismaClient();
