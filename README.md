@@ -224,33 +224,45 @@ Production target: **Vercel** + **hosted PostgreSQL** (Neon, Supabase, or Vercel
 
 ### 1. Hosted database
 
-1. Create a Postgres database with your provider.
-2. Copy the connection string into `DATABASE_URL`.
-3. If you get **pooled** and **direct** URLs:
-   - Prefer the provider’s guidance for serverless (often pooled for the app).
-   - Run migrations with a URL that supports migrations (often **direct**):
+**This project (Phase 4):** a Prisma Postgres instance was created with `npx create-db` and migrations were applied. Credentials are in **`web/.env.hosted`** (gitignored).
+
+1. **Claim the DB** (required): open `CLAIM_URL` from `.env.hosted` and claim it to your Prisma account so it is not auto-deleted.
+2. Use that `DATABASE_URL` on Vercel (and keep `.env.hosted` local only).
+3. Re-apply migrations if you ever recreate the database:
 
 ```bash
 cd web
-DATABASE_URL="postgresql://..." npm run db:migrate:deploy
+set -a && source .env.hosted && set +a
+npm run db:migrate:deploy
 ```
 
-4. Confirm tables exist (`User`, `Category`, `Expense`) in the provider console if needed.
+Alternative providers (Neon / Supabase / Vercel Postgres) work the same way: put their URL in `DATABASE_URL` and run `db:migrate:deploy`.
 
 Do **not** use `prisma migrate dev` against production.
 
 ### 2. Vercel project
 
+**CLI (recommended for this repo):**
+
+```bash
+cd web
+npx vercel login          # one-time browser login
+bash scripts/deploy-vercel.sh
+```
+
+The script uses **`web/.env.vercel`** (gitignored) for `DATABASE_URL` / `AUTH_SECRET`, deploys production, then sets `AUTH_URL` to the live `*.vercel.app` URL and redeploys.
+
+**Dashboard alternative:**
+
 1. Import the Git repository in Vercel.
 2. Set **Root Directory** to `web` if the app lives under `expense-tracker/web/`.
 3. Framework: Next.js (default).
-4. Build command: leave default **or** use `npm run build`  
-   (`package.json` already runs `prisma generate && next build`).
+4. Build command: `npm run build` (`prisma generate && next build`).
 5. Add **Environment Variables** (Production; Preview optional):
 
 | Variable | Example / notes |
 | --- | --- |
-| `DATABASE_URL` | Hosted Postgres URL |
+| `DATABASE_URL` | From `.env.hosted` / `.env.vercel` |
 | `AUTH_SECRET` | New secret: `openssl rand -base64 32` (not the local one) |
 | `AUTH_URL` | `https://your-app.vercel.app` (no trailing slash) |
 
