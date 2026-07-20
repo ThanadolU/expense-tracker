@@ -18,7 +18,7 @@ export default async function AppLayout({
         userEmail={session.user.email}
         userName={session.user.name}
       />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
         {children}
       </main>
     </div>
