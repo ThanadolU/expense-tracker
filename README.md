@@ -12,7 +12,9 @@ Planning docs live in the parent repo folder: [`../planning/`](../planning/).
 | Language | TypeScript |
 | Styling | Tailwind CSS |
 | ORM | Prisma 7 |
+| Auth | Auth.js v5 (`next-auth`) — email/password (Phase 1) |
 | Database | PostgreSQL (local + production) |
+| Default currency | **THB** (single-currency MVP; see `src/lib/constants.ts`) |
 | Deploy target | Vercel + hosted Postgres |
 
 ## Prerequisites
@@ -58,7 +60,7 @@ Copy the example and edit values if needed:
 cp .env.example .env
 ```
 
-Example `.env`:
+Example `.env` (see `.env.example` for full comments):
 
 ```env
 # Homebrew / peer auth (no password) — adjust user/host/port as needed
@@ -66,23 +68,41 @@ DATABASE_URL="postgresql://newuser@localhost:5432/expense_tracker?schema=public"
 
 # Docker example (if mapped to host port 5433):
 # DATABASE_URL="postgresql://postgres:postgres@localhost:5433/expense_tracker?schema=public"
+
+# Auth.js — required for sessions (generate a unique value per environment)
+#   openssl rand -base64 32
+AUTH_SECRET="your-long-random-secret"
+
+# Optional locally; required on Vercel (public HTTPS origin, no trailing slash)
+# AUTH_URL="http://localhost:3000"
 ```
 
-Never commit `.env` (it is gitignored).
+Never commit `.env` (gitignored). Commit `.env.example` only. Use a **different** `AUTH_SECRET` in production than in local dev.
 
 ### 3. Migrate & generate Prisma Client
 
 From `web/`:
 
 ```bash
-npx prisma migrate dev
-npx prisma generate
+# Development — apply migrations and create new ones as schema changes
+npm run db:migrate
+
+# Or explicitly:
+# npx prisma migrate dev
+# npx prisma generate
 ```
 
-First-time / named migration example:
+Named migration example:
 
 ```bash
 npx prisma migrate dev --name init
+```
+
+**Production / CI** (never use `migrate dev` against prod):
+
+```bash
+npm run db:migrate:deploy
+# equivalent: npx prisma migrate deploy
 ```
 
 ### 4. Run the app
@@ -92,6 +112,16 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+You should land on **login** (or **dashboard** if already signed in). Create an account at `/register` (password at least 8 characters).
+
+### Auth routes
+
+| Path | Access |
+| --- | --- |
+| `/login`, `/register` | Public (redirect to dashboard if already logged in) |
+| `/dashboard`, `/expenses`, `/categories` | Authenticated only |
+| `/api/auth/*` | Auth.js handlers |
 
 ---
 
@@ -119,14 +149,14 @@ Do **not** add this back to the schema (invalid on Prisma 7):
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Start Next.js dev server |
-| `npm run build` | Production build |
+| `npm run build` | `prisma generate` + production Next.js build |
 | `npm run start` | Run production server |
 | `npm run lint` | ESLint |
-| `npx prisma migrate dev` | Apply migrations in development (creates new ones if schema changed) |
+| `npm run db:migrate` | Dev migrations (`prisma migrate dev`) |
+| `npm run db:migrate:deploy` | Apply migrations in CI/production (`migrate deploy`) |
+| `npm run db:generate` | Regenerate Prisma Client |
+| `npm run db:studio` | Prisma Studio |
 | `npx prisma migrate dev --name <name>` | Create/apply a named migration |
-| `npx prisma migrate deploy` | Apply migrations in CI/production (no prompts) |
-| `npx prisma generate` | Regenerate Prisma Client |
-| `npx prisma studio` | Browser UI for the database |
 | `npx prisma db pull` | Introspect DB into schema (use carefully) |
 
 ### Prisma Studio
@@ -163,7 +193,7 @@ web/
   .env.example             # safe template for others
 ```
 
-Planning / phases: `../planning/implementation-plan.md`, `../planning/phase-0-todo.md`.
+Planning / phases: `../planning/implementation-plan.md`, `../planning/phase-4-todo.md`.
 
 ---
 
@@ -188,12 +218,73 @@ Ensure `DATABASE_URL` is available to Next.js (`.env` in `web/`) and that you im
 
 ---
 
-## Deploy (later)
+## Deploy (Vercel + hosted Postgres)
 
-Production target: **Vercel** + **hosted PostgreSQL** (Neon, Supabase, Vercel Postgres, etc.).
+Production target: **Vercel** + **hosted PostgreSQL** (Neon, Supabase, or Vercel Postgres).
 
-1. Set `DATABASE_URL` (and later auth secrets) in the Vercel project.
-2. Run migrations against production (`prisma migrate deploy` in CI or a release step).
-3. Deploy the Next.js app.
+### 1. Hosted database
 
-Details will be filled in during Phase 4 of the implementation plan.
+**This project (Phase 4):** a Prisma Postgres instance was created with `npx create-db` and migrations were applied. Credentials are in **`web/.env.hosted`** (gitignored).
+
+1. **Claim the DB** (required): open `CLAIM_URL` from `.env.hosted` and claim it to your Prisma account so it is not auto-deleted.
+2. Use that `DATABASE_URL` on Vercel (and keep `.env.hosted` local only).
+3. Re-apply migrations if you ever recreate the database:
+
+```bash
+cd web
+set -a && source .env.hosted && set +a
+npm run db:migrate:deploy
+```
+
+Alternative providers (Neon / Supabase / Vercel Postgres) work the same way: put their URL in `DATABASE_URL` and run `db:migrate:deploy`.
+
+Do **not** use `prisma migrate dev` against production.
+
+### 2. Vercel project
+
+**CLI (recommended for this repo):**
+
+```bash
+cd web
+npx vercel login          # one-time browser login
+bash scripts/deploy-vercel.sh
+```
+
+The script uses **`web/.env.vercel`** (gitignored) for `DATABASE_URL` / `AUTH_SECRET`, deploys production, then sets `AUTH_URL` to the live `*.vercel.app` URL and redeploys.
+
+**Dashboard alternative:**
+
+1. Import the Git repository in Vercel.
+2. Set **Root Directory** to `web` if the app lives under `expense-tracker/web/`.
+3. Framework: Next.js (default).
+4. Build command: `npm run build` (`prisma generate && next build`).
+5. Add **Environment Variables** (Production; Preview optional):
+
+| Variable | Example / notes |
+| --- | --- |
+| `DATABASE_URL` | From `.env.hosted` / `.env.vercel` |
+| `AUTH_SECRET` | New secret: `openssl rand -base64 32` (not the local one) |
+| `AUTH_URL` | `https://your-app.vercel.app` (no trailing slash) |
+
+6. Deploy.
+
+After the first deploy, set `AUTH_URL` to the real production URL if it differs, then redeploy.
+
+### 3. Production smoke test
+
+1. Open the Vercel URL → register a user  
+2. Categories defaults / add category  
+3. Create an expense → dashboard total updates  
+4. Filters on `/expenses`  
+5. Log out / log in — session persists  
+
+### 4. Checklist
+
+- [ ] Hosted Postgres provisioned  
+- [ ] `npm run db:migrate:deploy` against prod URL  
+- [ ] Vercel env: `DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL`  
+- [ ] Root Directory = `web` (if monorepo layout)  
+- [ ] Deploy succeeds  
+- [ ] Smoke test passed  
+
+Planning details: [`../planning/phase-4-todo.md`](../planning/phase-4-todo.md).
