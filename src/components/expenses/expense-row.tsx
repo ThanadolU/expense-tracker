@@ -93,7 +93,7 @@ export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
                 type="date"
                 required
                 defaultValue={expense.spentAt}
-                className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                className="date-input w-full min-h-10 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50"
               />
             </div>
             <div className="space-y-1">
