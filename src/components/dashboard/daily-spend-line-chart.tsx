@@ -98,7 +98,6 @@ export function DailySpendLineChart({
               label={{
                 value: "Day",
                 position: "insideBottomRight",
-                offset: -4,
                 fontSize: 11,
               }}
             />
