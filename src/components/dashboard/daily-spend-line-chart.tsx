@@ -66,8 +66,8 @@ export function DailySpendLineChart({
     return null;
   }
 
-  // Show fewer x ticks on narrow charts so labels stay readable
-  const tickInterval = data.length > 20 ? 4 : data.length > 12 ? 2 : 0;
+  // Only days with data — show all labels when few points
+  const tickInterval = data.length > 15 ? 2 : 0;
 
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
@@ -76,7 +76,10 @@ export function DailySpendLineChart({
           Daily spending
         </h2>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          Total per day in {monthLabel}
+          Days with expenses in {monthLabel}
+          {data.length > 0
+            ? ` (day ${data[0].day}–${data[data.length - 1].day})`
+            : ""}
         </p>
       </div>
       <div className="h-64 w-full sm:h-72">

@@ -36,7 +36,7 @@ export type MonthlyDashboard = {
   currency: string;
   expenseCount: number;
   byCategory: CategoryBreakdown[];
-  /** Daily totals for every day in the month (0 if no expenses). */
+  /** Daily totals only for days that have expenses (sorted by day). */
   dailySpend: DailySpendPoint[];
 };
 
@@ -112,27 +112,31 @@ export async function getMonthlyDashboard(
     })
     .sort((a, b) => Number(b.total) - Number(a.total));
 
-  // Map UTC day-of-month → sum
+  // Map UTC day-of-month → sum (only days that actually have expenses)
   const totalByDay = new Map<number, number>();
   for (const row of byDayRows) {
     const d = row.spentAt instanceof Date ? row.spentAt : new Date(row.spentAt);
     const day = d.getUTCDate();
-    totalByDay.set(day, (totalByDay.get(day) ?? 0) + decimalToNumber(row._sum.amount));
+    totalByDay.set(
+      day,
+      (totalByDay.get(day) ?? 0) + decimalToNumber(row._sum.amount),
+    );
   }
 
-  // Last day of calendar month (month is 1–12)
-  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  const dailySpend: DailySpendPoint[] = [];
-  for (let day = 1; day <= daysInMonth; day++) {
-    const mm = String(month).padStart(2, "0");
-    const dd = String(day).padStart(2, "0");
-    dailySpend.push({
-      day,
-      date: `${year}-${mm}-${dd}`,
-      label: String(day),
-      total: totalByDay.get(day) ?? 0,
+  // Line chart: only the period that has data (days with spend), not empty month days
+  const mm = String(month).padStart(2, "0");
+  const dailySpend: DailySpendPoint[] = [...totalByDay.entries()]
+    .filter(([, total]) => total > 0)
+    .sort(([dayA], [dayB]) => dayA - dayB)
+    .map(([day, total]) => {
+      const dd = String(day).padStart(2, "0");
+      return {
+        day,
+        date: `${year}-${mm}-${dd}`,
+        label: String(day),
+        total,
+      };
     });
-  }
 
   return {
     year,
