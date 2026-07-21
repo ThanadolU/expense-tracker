@@ -16,6 +16,18 @@ export type CategoryBreakdown = {
   percent: number;
 };
 
+/** One point on the daily spend line chart for the selected month. */
+export type DailySpendPoint = {
+  /** Day of month 1–31 */
+  day: number;
+  /** YYYY-MM-DD (UTC date storage) */
+  date: string;
+  /** Axis label, e.g. "1", "15" */
+  label: string;
+  /** Total spent that day */
+  total: number;
+};
+
 export type MonthlyDashboard = {
   year: number;
   month: number;
@@ -24,6 +36,8 @@ export type MonthlyDashboard = {
   currency: string;
   expenseCount: number;
   byCategory: CategoryBreakdown[];
+  /** Daily totals only for days that have expenses (sorted by day). */
+  dailySpend: DailySpendPoint[];
 };
 
 function decimalToNumber(value: { toString(): string } | null | undefined): number {
@@ -49,7 +63,7 @@ export async function getMonthlyDashboard(
 ): Promise<MonthlyDashboard> {
   const spentAt = spentAtMonthFilter(year, month);
 
-  const [aggregate, grouped] = await Promise.all([
+  const [aggregate, grouped, byDayRows] = await Promise.all([
     prisma.expense.aggregate({
       where: { userId, spentAt },
       _sum: { amount: true },
@@ -60,6 +74,11 @@ export async function getMonthlyDashboard(
       where: { userId, spentAt },
       _sum: { amount: true },
       _count: { _all: true },
+    }),
+    prisma.expense.groupBy({
+      by: ["spentAt"],
+      where: { userId, spentAt },
+      _sum: { amount: true },
     }),
   ]);
 
@@ -93,6 +112,32 @@ export async function getMonthlyDashboard(
     })
     .sort((a, b) => Number(b.total) - Number(a.total));
 
+  // Map UTC day-of-month → sum (only days that actually have expenses)
+  const totalByDay = new Map<number, number>();
+  for (const row of byDayRows) {
+    const d = row.spentAt instanceof Date ? row.spentAt : new Date(row.spentAt);
+    const day = d.getUTCDate();
+    totalByDay.set(
+      day,
+      (totalByDay.get(day) ?? 0) + decimalToNumber(row._sum.amount),
+    );
+  }
+
+  // Line chart: only the period that has data (days with spend), not empty month days
+  const mm = String(month).padStart(2, "0");
+  const dailySpend: DailySpendPoint[] = [...totalByDay.entries()]
+    .filter(([, total]) => total > 0)
+    .sort(([dayA], [dayB]) => dayA - dayB)
+    .map(([day, total]) => {
+      const dd = String(day).padStart(2, "0");
+      return {
+        day,
+        date: `${year}-${mm}-${dd}`,
+        label: String(day),
+        total,
+      };
+    });
+
   return {
     year,
     month,
@@ -101,6 +146,7 @@ export async function getMonthlyDashboard(
     currency: DEFAULT_CURRENCY,
     expenseCount,
     byCategory,
+    dailySpend,
   };
 }
 
