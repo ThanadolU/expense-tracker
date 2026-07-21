@@ -86,7 +86,7 @@ export function DailySpendLineChart({
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={data}
-            margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+            margin={{ top: 8, right: 8, left: 0, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" className="stroke-zinc-200 dark:stroke-zinc-700" />
             <XAxis
@@ -97,7 +97,8 @@ export function DailySpendLineChart({
               interval={tickInterval}
               label={{
                 value: "Day",
-                position: "insideBottomRight",
+                position: "insideBottom",
+                offset: -2,
                 fontSize: 11,
               }}
             />
