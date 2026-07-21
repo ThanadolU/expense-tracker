@@ -1,4 +1,5 @@
 import { CategoryBreakdown } from "@/components/dashboard/category-breakdown";
+import { DailySpendLineChart } from "@/components/dashboard/daily-spend-line-chart";
 import { EmptyMonth } from "@/components/dashboard/empty-month";
 import { MonthPicker } from "@/components/dashboard/month-picker";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
@@ -44,10 +45,17 @@ export default async function DashboardPage({
       {isEmpty ? (
         <EmptyMonth monthLabel={dashboard.label} />
       ) : (
-        <CategoryBreakdown
-          rows={dashboard.byCategory}
-          currency={dashboard.currency}
-        />
+        <>
+          <DailySpendLineChart
+            data={dashboard.dailySpend}
+            currency={dashboard.currency}
+            monthLabel={dashboard.label}
+          />
+          <CategoryBreakdown
+            rows={dashboard.byCategory}
+            currency={dashboard.currency}
+          />
+        </>
       )}
     </div>
   );
