@@ -16,6 +16,18 @@ export type CategoryBreakdown = {
   percent: number;
 };
 
+/** One point on the daily spend line chart for the selected month. */
+export type DailySpendPoint = {
+  /** Day of month 1–31 */
+  day: number;
+  /** YYYY-MM-DD (UTC date storage) */
+  date: string;
+  /** Axis label, e.g. "1", "15" */
+  label: string;
+  /** Total spent that day */
+  total: number;
+};
+
 export type MonthlyDashboard = {
   year: number;
   month: number;
@@ -24,6 +36,8 @@ export type MonthlyDashboard = {
   currency: string;
   expenseCount: number;
   byCategory: CategoryBreakdown[];
+  /** Daily totals for every day in the month (0 if no expenses). */
+  dailySpend: DailySpendPoint[];
 };
 
 function decimalToNumber(value: { toString(): string } | null | undefined): number {
@@ -49,7 +63,7 @@ export async function getMonthlyDashboard(
 ): Promise<MonthlyDashboard> {
   const spentAt = spentAtMonthFilter(year, month);
 
-  const [aggregate, grouped] = await Promise.all([
+  const [aggregate, grouped, byDayRows] = await Promise.all([
     prisma.expense.aggregate({
       where: { userId, spentAt },
       _sum: { amount: true },
@@ -60,6 +74,11 @@ export async function getMonthlyDashboard(
       where: { userId, spentAt },
       _sum: { amount: true },
       _count: { _all: true },
+    }),
+    prisma.expense.groupBy({
+      by: ["spentAt"],
+      where: { userId, spentAt },
+      _sum: { amount: true },
     }),
   ]);
 
@@ -93,6 +112,28 @@ export async function getMonthlyDashboard(
     })
     .sort((a, b) => Number(b.total) - Number(a.total));
 
+  // Map UTC day-of-month → sum
+  const totalByDay = new Map<number, number>();
+  for (const row of byDayRows) {
+    const d = row.spentAt instanceof Date ? row.spentAt : new Date(row.spentAt);
+    const day = d.getUTCDate();
+    totalByDay.set(day, (totalByDay.get(day) ?? 0) + decimalToNumber(row._sum.amount));
+  }
+
+  // Last day of calendar month (month is 1–12)
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const dailySpend: DailySpendPoint[] = [];
+  for (let day = 1; day <= daysInMonth; day++) {
+    const mm = String(month).padStart(2, "0");
+    const dd = String(day).padStart(2, "0");
+    dailySpend.push({
+      day,
+      date: `${year}-${mm}-${dd}`,
+      label: String(day),
+      total: totalByDay.get(day) ?? 0,
+    });
+  }
+
   return {
     year,
     month,
@@ -101,6 +142,7 @@ export async function getMonthlyDashboard(
     currency: DEFAULT_CURRENCY,
     expenseCount,
     byCategory,
+    dailySpend,
   };
 }
 
