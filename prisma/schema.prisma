@@ -42,6 +42,15 @@ enum PaymentMethod {
   SCB
   BBL
   KBANK
+  BAY
+  TTB
+  GSB
+  BAAC
+  CIMB
+  UOB
+  LH
+  ICBC
+  CITI
   PROMPTPAY
   OTHER
 }

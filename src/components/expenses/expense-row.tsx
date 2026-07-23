@@ -7,7 +7,13 @@ import {
   type ExpenseFormState,
 } from "@/lib/actions/expenses";
 import type { CategoryOption } from "@/components/expenses/expense-create-form";
+import { PaymentMethodIcon } from "@/components/expenses/payment-method-icon";
 import { formatDateInput, formatMoney } from "@/lib/money";
+import {
+  PAYMENT_METHODS,
+  paymentMethodShortLabel,
+  type PaymentMethodId,
+} from "@/lib/payment-methods";
 
 export type ExpenseListItem = {
   id: string;
@@ -17,6 +23,7 @@ export type ExpenseListItem = {
   note: string | null;
   categoryId: string;
   categoryName: string;
+  paymentMethod: PaymentMethodId | string;
 };
 
 const initialState: ExpenseFormState = null;
@@ -104,7 +111,7 @@ export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
                 name="categoryId"
                 required
                 defaultValue={expense.categoryId}
-                className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                className="min-h-10 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
               >
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
@@ -114,6 +121,23 @@ export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
               </select>
             </div>
             <div className="space-y-1">
+              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                Payment method
+              </label>
+              <select
+                name="paymentMethod"
+                required
+                defaultValue={expense.paymentMethod}
+                className="min-h-10 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+              >
+                {PAYMENT_METHODS.map((method) => (
+                  <option key={method.id} value={method.id}>
+                    {method.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1 sm:col-span-2">
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                 Note
               </label>
@@ -156,6 +180,12 @@ export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
               </span>
               <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                 {expense.categoryName}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <PaymentMethodIcon method={expense.paymentMethod} />
+                <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                  {paymentMethodShortLabel(expense.paymentMethod)}
+                </span>
               </span>
             </div>
             {expense.note ? (

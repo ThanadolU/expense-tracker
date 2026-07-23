@@ -9,11 +9,16 @@ import {
   resolveExpenseMonthParam,
 } from "@/lib/dates";
 import { formatDateInput, todayDateInput } from "@/lib/money";
+import {
+  parsePaymentMethod,
+  paymentMethodShortLabel,
+} from "@/lib/payment-methods";
 
 type ExpensesPageProps = {
   searchParams: Promise<{
     month?: string;
     categoryId?: string;
+    paymentMethod?: string;
   }>;
 };
 
@@ -28,6 +33,7 @@ export default async function ExpensesPage({
     typeof params.categoryId === "string" && params.categoryId.trim()
       ? params.categoryId.trim()
       : null;
+  const paymentMethod = parsePaymentMethod(params.paymentMethod);
 
   const categories = await ensureDefaultCategories(userId);
   const ownedCategoryIds = new Set(categories.map((c) => c.id));
@@ -39,6 +45,7 @@ export default async function ExpensesPage({
   const expenses = await listExpensesForUser(userId, {
     yearMonth,
     categoryId,
+    paymentMethod,
   });
 
   const categoryOptions = categories.map((category) => ({
@@ -54,21 +61,25 @@ export default async function ExpensesPage({
     note: expense.note,
     categoryId: expense.categoryId,
     categoryName: expense.category.name,
+    paymentMethod: expense.paymentMethod,
   }));
 
   const today = todayDateInput();
 
-  // Clear is useful when not already showing all months + all categories
-  const isAllTimeAllCategories = yearMonth == null && categoryId == null;
+  const isUnfiltered =
+    yearMonth == null && categoryId == null && paymentMethod == null;
 
   const filterSummary = [
     yearMonth ? formatMonthLabelFrom(yearMonth) : "All months",
     categoryId
       ? (categories.find((c) => c.id === categoryId)?.name ?? "Category")
       : "All categories",
+    paymentMethod
+      ? paymentMethodShortLabel(paymentMethod)
+      : "All methods",
   ].join(" · ");
 
-  const emptyMessage = isAllTimeAllCategories
+  const emptyMessage = isUnfiltered
     ? "No expenses yet. Add one above to start tracking."
     : `No expenses for this filter (${filterSummary}).`;
 
@@ -79,8 +90,8 @@ export default async function ExpensesPage({
           Expenses
         </h1>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Record spending by category. Amounts use THB for this MVP. Defaults to
-          the current month.
+          Record spending by category and payment method. Amounts use THB.
+          Defaults to the current month.
         </p>
       </div>
 
@@ -93,8 +104,9 @@ export default async function ExpensesPage({
         <ExpenseFilters
           yearMonth={yearMonth}
           categoryId={categoryId}
+          paymentMethod={paymentMethod}
           categories={categoryOptions}
-          hasActiveFilters={!isAllTimeAllCategories}
+          hasActiveFilters={!isUnfiltered}
         />
       </div>
 
@@ -110,7 +122,7 @@ export default async function ExpensesPage({
           expenses={expenseItems}
           categories={categoryOptions}
           emptyMessage={emptyMessage}
-          showClearFilters={!isAllTimeAllCategories && expenseItems.length === 0}
+          showClearFilters={!isUnfiltered && expenseItems.length === 0}
         />
       </div>
     </div>
