@@ -5,6 +5,10 @@ import {
   createExpenseAction,
   type ExpenseFormState,
 } from "@/lib/actions/expenses";
+import {
+  DEFAULT_PAYMENT_METHOD,
+  PAYMENT_METHODS,
+} from "@/lib/payment-methods";
 
 export type CategoryOption = {
   id: string;
@@ -118,7 +122,7 @@ export function ExpenseCreateForm({
             name="categoryId"
             required
             defaultValue={categories[0]?.id}
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+            className="min-h-10 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
           >
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -129,6 +133,28 @@ export function ExpenseCreateForm({
         </div>
 
         <div className="space-y-1.5">
+          <label
+            htmlFor="paymentMethod"
+            className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
+          >
+            Payment method
+          </label>
+          <select
+            id="paymentMethod"
+            name="paymentMethod"
+            required
+            defaultValue={DEFAULT_PAYMENT_METHOD}
+            className="min-h-10 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+          >
+            {PAYMENT_METHODS.map((method) => (
+              <option key={method.id} value={method.id}>
+                {method.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-1.5 sm:col-span-2">
           <label
             htmlFor="note"
             className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"

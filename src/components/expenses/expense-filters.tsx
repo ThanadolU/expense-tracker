@@ -5,6 +5,7 @@ import {
   toMonthInputValueFrom,
   type YearMonth,
 } from "@/lib/dates";
+import { PAYMENT_METHODS } from "@/lib/payment-methods";
 
 export type CategoryOption = {
   id: string;
@@ -15,6 +16,7 @@ type ExpenseFiltersProps = {
   /** null = all months */
   yearMonth: YearMonth | null;
   categoryId: string | null;
+  paymentMethod: string | null;
   categories: CategoryOption[];
   hasActiveFilters: boolean;
 };
@@ -22,6 +24,7 @@ type ExpenseFiltersProps = {
 export function ExpenseFilters({
   yearMonth,
   categoryId,
+  paymentMethod,
   categories,
   hasActiveFilters,
 }: ExpenseFiltersProps) {
@@ -78,6 +81,28 @@ export function ExpenseFilters({
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="min-w-0 flex-1 space-y-1 sm:min-w-[10rem]">
+        <label
+          htmlFor="filter-payment"
+          className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
+        >
+          Payment
+        </label>
+        <select
+          id="filter-payment"
+          name="paymentMethod"
+          defaultValue={paymentMethod ?? ""}
+          className="min-h-11 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+        >
+          <option value="">All methods</option>
+          {PAYMENT_METHODS.map((method) => (
+            <option key={method.id} value={method.id}>
+              {method.label}
             </option>
           ))}
         </select>

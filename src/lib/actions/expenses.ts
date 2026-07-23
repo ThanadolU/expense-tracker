@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { requireUserId } from "@/lib/auth-utils";
 import { DEFAULT_CURRENCY } from "@/lib/constants";
 import { spentAtMonthFilter } from "@/lib/dates";
+import {
+  DEFAULT_PAYMENT_METHOD,
+  parsePaymentMethod,
+  type PaymentMethodId,
+} from "@/lib/payment-methods";
 import { prisma } from "@/lib/prisma";
 
 export type ExpenseFormState = {
@@ -67,6 +72,24 @@ async function assertCategoryOwned(categoryId: string, userId: string) {
   });
 }
 
+/**
+ * Read paymentMethod from form.
+ * - Missing/empty → default CASH
+ * - Invalid value → error
+ */
+function resolvePaymentMethod(
+  raw: string,
+): { ok: true; value: PaymentMethodId } | { ok: false; error: string } {
+  if (!raw) {
+    return { ok: true, value: DEFAULT_PAYMENT_METHOD };
+  }
+  const parsed = parsePaymentMethod(raw);
+  if (!parsed) {
+    return { ok: false, error: "Invalid payment method." };
+  }
+  return { ok: true, value: parsed };
+}
+
 export async function createExpenseAction(
   _prev: ExpenseFormState,
   formData: FormData,
@@ -77,6 +100,7 @@ export async function createExpenseAction(
   const spentAtRaw = readString(formData.get("spentAt"));
   const categoryId = readString(formData.get("categoryId"));
   const noteRaw = readString(formData.get("note"));
+  const paymentMethodRaw = readString(formData.get("paymentMethod"));
 
   const amount = parseAmount(amountRaw);
   if (!amount.ok) {
@@ -101,12 +125,18 @@ export async function createExpenseAction(
     return { error: `Note must be at most ${MAX_NOTE_LENGTH} characters.` };
   }
 
+  const paymentMethod = resolvePaymentMethod(paymentMethodRaw);
+  if (!paymentMethod.ok) {
+    return { error: paymentMethod.error };
+  }
+
   await prisma.expense.create({
     data: {
       userId,
       categoryId,
       amount: amount.value,
       currency: DEFAULT_CURRENCY,
+      paymentMethod: paymentMethod.value,
       spentAt: spentAt.value,
       note: noteRaw.length > 0 ? noteRaw : null,
     },
@@ -138,6 +168,7 @@ export async function updateExpenseAction(
   const spentAtRaw = readString(formData.get("spentAt"));
   const categoryId = readString(formData.get("categoryId"));
   const noteRaw = readString(formData.get("note"));
+  const paymentMethodRaw = readString(formData.get("paymentMethod"));
 
   const amount = parseAmount(amountRaw);
   if (!amount.ok) {
@@ -162,11 +193,17 @@ export async function updateExpenseAction(
     return { error: `Note must be at most ${MAX_NOTE_LENGTH} characters.` };
   }
 
+  const paymentMethod = resolvePaymentMethod(paymentMethodRaw);
+  if (!paymentMethod.ok) {
+    return { error: paymentMethod.error };
+  }
+
   await prisma.expense.update({
     where: { id },
     data: {
       categoryId,
       amount: amount.value,
+      paymentMethod: paymentMethod.value,
       spentAt: spentAt.value,
       note: noteRaw.length > 0 ? noteRaw : null,
     },
@@ -207,6 +244,8 @@ export type ListExpensesFilters = {
   yearMonth?: { year: number; month: number } | null;
   /** null/undefined = all categories; only applied if owned by user */
   categoryId?: string | null;
+  /** null/undefined = all methods; only applied if valid enum id */
+  paymentMethod?: PaymentMethodId | null;
 };
 
 export async function listExpensesForUser(
@@ -217,6 +256,7 @@ export async function listExpensesForUser(
     userId: string;
     spentAt?: { gte: Date; lt: Date };
     categoryId?: string;
+    paymentMethod?: PaymentMethodId;
   } = { userId };
 
   if (filters.yearMonth) {
@@ -231,6 +271,10 @@ export async function listExpensesForUser(
     if (owned) {
       where.categoryId = filters.categoryId;
     }
+  }
+
+  if (filters.paymentMethod) {
+    where.paymentMethod = filters.paymentMethod;
   }
 
   return prisma.expense.findMany({
