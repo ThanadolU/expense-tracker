@@ -92,11 +92,22 @@ export async function getBudgetsForMonth(userId: string, year: number, month: nu
 }
 
 export type BudgetSummary = {
-  overall: { amount: string; spent: string } | null;
+  overall: {
+    /** Budget row id, or null if no overall budget set for this month. */
+    id: string | null;
+    /** null = no overall budget set (don't render a fake 0 budget). */
+    amount: string | null;
+    spent: string;
+  };
+  /** One entry per user category (not just budgeted ones), so the budgets
+   *  page can offer "set a budget" for categories that don't have one yet. */
   categories: Array<{
     categoryId: string;
     categoryName: string;
-    amount: string;
+    /** Budget row id, or null if no budget set for this category/month. */
+    id: string | null;
+    /** null = no budget set for this category this month. */
+    amount: string | null;
     spent: string;
   }>;
 };
@@ -113,8 +124,12 @@ export async function getBudgetSummaryForMonth(
   const { start, endExclusive } = monthRange(year, month);
   const spentAt = { gte: start, lt: endExclusive };
 
-  const [budgets, totalSpent, categorySpent] = await Promise.all([
+  const [budgets, categories, totalSpent, categorySpent] = await Promise.all([
     getBudgetsForMonth(userId, year, month),
+    prisma.category.findMany({
+      where: { userId },
+      orderBy: { name: "asc" },
+    }),
     prisma.expense.aggregate({
       where: { userId, spentAt },
       _sum: { amount: true },
@@ -129,24 +144,29 @@ export async function getBudgetSummaryForMonth(
   const spentByCategory = new Map(
     categorySpent.map((row) => [row.categoryId, row._sum.amount?.toString() ?? "0"]),
   );
-
+  const budgetByCategory = new Map(
+    budgets
+      .filter((budget) => budget.categoryId !== null)
+      .map((budget) => [budget.categoryId as string, budget]),
+  );
   const overallBudget = budgets.find((budget) => budget.categoryId === null) ?? null;
 
   return {
-    overall: overallBudget
-      ? {
-          amount: overallBudget.amount.toString(),
-          spent: totalSpent._sum.amount?.toString() ?? "0",
-        }
-      : null,
-    categories: budgets
-      .filter((budget) => budget.categoryId !== null && budget.category)
-      .map((budget) => ({
-        categoryId: budget.categoryId as string,
-        categoryName: budget.category!.name,
-        amount: budget.amount.toString(),
-        spent: spentByCategory.get(budget.categoryId as string) ?? "0",
-      })),
+    overall: {
+      id: overallBudget?.id ?? null,
+      amount: overallBudget ? overallBudget.amount.toString() : null,
+      spent: totalSpent._sum.amount?.toString() ?? "0",
+    },
+    categories: categories.map((category) => {
+      const budget = budgetByCategory.get(category.id);
+      return {
+        categoryId: category.id,
+        categoryName: category.name,
+        id: budget?.id ?? null,
+        amount: budget ? budget.amount.toString() : null,
+        spent: spentByCategory.get(category.id) ?? "0",
+      };
+    }),
   };
 }
 
