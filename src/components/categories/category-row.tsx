@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import {
   deleteCategoryAction,
   updateCategoryAction,
@@ -29,11 +29,16 @@ export function CategoryRow({ category }: CategoryRowProps) {
     initialState,
   );
 
-  useEffect(() => {
+  // Close the edit form once the update succeeds. Compared during render
+  // (not in an effect) so closing happens in the same commit as the new
+  // state, instead of an extra render-then-effect pass.
+  const [prevUpdateState, setPrevUpdateState] = useState(updateState);
+  if (updateState !== prevUpdateState) {
+    setPrevUpdateState(updateState);
     if (updateState?.success) {
       setEditing(false);
     }
-  }, [updateState?.success]);
+  }
 
   const error = updateState?.error || deleteState?.error;
   const success = updateState?.success || deleteState?.success;
