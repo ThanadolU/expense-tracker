@@ -23,7 +23,7 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
             Budgets
           </h1>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="w-[32vw] text-sm text-zinc-600 dark:text-zinc-400">
             Optional caps for {formatMonthLabelFrom(ym)}. Going over just
             shows a warning — nothing blocks you from adding an expense.
           </p>

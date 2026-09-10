@@ -248,7 +248,7 @@ export type ListExpensesFilters = {
   paymentMethod?: PaymentMethodId | null;
 };
 
-export async function listExpensesForUser(
+async function buildExpenseWhere(
   userId: string,
   filters: ListExpensesFilters = {},
 ) {
@@ -277,6 +277,15 @@ export async function listExpensesForUser(
     where.paymentMethod = filters.paymentMethod;
   }
 
+  return where;
+}
+
+export async function listExpensesForUser(
+  userId: string,
+  filters: ListExpensesFilters = {},
+) {
+  const where = await buildExpenseWhere(userId, filters);
+
   return prisma.expense.findMany({
     where,
     include: {
@@ -286,3 +295,23 @@ export async function listExpensesForUser(
     take: LIST_LIMIT,
   });
 }
+
+/**
+ * Fetch all matching expenses for export without the LIST_LIMIT cap.
+ * Scoped strictly to the authenticated user and matches active filter criteria.
+ */
+export async function exportExpensesForUser(
+  userId: string,
+  filters: ListExpensesFilters = {},
+) {
+  const where = await buildExpenseWhere(userId, filters);
+
+  return prisma.expense.findMany({
+    where,
+    include: {
+      category: { select: { id: true, name: true } },
+    },
+    orderBy: [{ spentAt: "desc" }, { createdAt: "desc" }],
+  });
+}
+
