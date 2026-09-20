@@ -16,7 +16,7 @@ type ExpenseListProps = {
 export function ExpenseList({
   expenses,
   categories,
-  emptyMessage = "No expenses yet. Add one above to start tracking.",
+  emptyMessage = "No expenses yet. Add one to start tracking.",
   showClearFilters = false,
 }: ExpenseListProps) {
   if (expenses.length === 0) {
