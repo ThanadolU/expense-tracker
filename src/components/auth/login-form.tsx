@@ -6,11 +6,24 @@ import { loginAction, type AuthFormState } from "@/lib/actions/auth";
 
 const initialState: AuthFormState = null;
 
-export function LoginForm() {
+type LoginFormProps = {
+  resetSuccess?: boolean;
+};
+
+export function LoginForm({ resetSuccess }: LoginFormProps) {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
 
   return (
     <form action={formAction} className="space-y-4">
+      {resetSuccess && !state?.error ? (
+        <div
+          className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300"
+          role="status"
+        >
+          Password updated successfully. Please sign in with your new password.
+        </div>
+      ) : null}
+
       {state?.error ? (
         <p
           className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300"
@@ -38,12 +51,20 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-1.5">
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-        >
-          Password
-        </label>
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+          >
+            Password
+          </label>
+          <Link
+            href="/forgot-password"
+            className="text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:underline dark:text-zinc-400 dark:hover:text-zinc-200"
+          >
+            Forgot password?
+          </Link>
+        </div>
         <input
           id="password"
           name="password"

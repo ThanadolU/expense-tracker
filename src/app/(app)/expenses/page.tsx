@@ -65,6 +65,8 @@ export default async function ExpensesPage({
     categoryName: expense.category.name,
     paymentMethod: expense.paymentMethod,
     recurringExpenseId: expense.recurringExpenseId,
+    receiptUrl: expense.receiptUrl,
+    receiptKey: expense.receiptKey,
   }));
 
   const today = todayDateInput();

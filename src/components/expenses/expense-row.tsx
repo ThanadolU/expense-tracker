@@ -8,6 +8,8 @@ import {
 } from "@/lib/actions/expenses";
 import type { CategoryOption } from "@/components/expenses/expense-create-form";
 import { PaymentMethodIcon } from "@/components/expenses/payment-method-icon";
+import { ReceiptModal } from "@/components/expenses/receipt-modal";
+import { ReceiptUploadInput } from "@/components/expenses/receipt-upload-input";
 import { formatDateInput, formatMoney } from "@/lib/money";
 import {
   PAYMENT_METHODS,
@@ -25,6 +27,8 @@ export type ExpenseListItem = {
   categoryName: string;
   paymentMethod: PaymentMethodId | string;
   recurringExpenseId?: string | null;
+  receiptUrl?: string | null;
+  receiptKey?: string | null;
 };
 
 const initialState: ExpenseFormState = null;
@@ -36,6 +40,7 @@ type ExpenseRowProps = {
 
 export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
   const [editing, setEditing] = useState(false);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [updateState, updateAction, updatePending] = useActionState(
     updateExpenseAction,
     initialState,
@@ -152,6 +157,19 @@ export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
                 className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
               />
             </div>
+            <div className="space-y-1 sm:col-span-2">
+              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                Receipt
+              </label>
+              <ReceiptUploadInput
+                existingReceiptUrl={
+                  expense.receiptKey
+                    ? expense.receiptUrl || `/api/receipts/${expense.id}`
+                    : null
+                }
+                disabled={pending}
+              />
+            </div>
           </div>
           <div className="flex gap-2">
             <button
@@ -211,6 +229,29 @@ export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
                   Recurring
                 </span>
               ) : null}
+              {expense.receiptKey ? (
+                <button
+                  type="button"
+                  onClick={() => setIsReceiptModalOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                  title="View attached receipt"
+                >
+                  <svg
+                    className="h-3 w-3 text-zinc-500 dark:text-zinc-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                    />
+                  </svg>
+                  Receipt
+                </button>
+              ) : null}
             </div>
             {expense.note ? (
               <p className="truncate text-sm text-zinc-600 dark:text-zinc-400">
@@ -247,6 +288,15 @@ export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
           </div>
         </div>
       )}
+
+      {expense.receiptKey ? (
+        <ReceiptModal
+          isOpen={isReceiptModalOpen}
+          onClose={() => setIsReceiptModalOpen(false)}
+          receiptUrl={expense.receiptUrl || `/api/receipts/${expense.id}`}
+          title={`Receipt: ${expense.note || expense.categoryName} (${formatMoney(expense.amount, expense.currency)})`}
+        />
+      ) : null}
     </li>
   );
 }
