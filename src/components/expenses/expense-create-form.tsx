@@ -76,7 +76,7 @@ export function ExpenseCreateForm({
       ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <label
             htmlFor="amount"
             className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
@@ -94,7 +94,7 @@ export function ExpenseCreateForm({
           />
         </div>
 
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <label
             htmlFor="spentAt"
             className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
@@ -107,11 +107,11 @@ export function ExpenseCreateForm({
             type="date"
             required
             defaultValue={defaultDate}
-            className="date-input w-full min-h-10 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50"
+            className="date-input block w-full max-w-full min-h-10 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50"
           />
         </div>
 
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <label
             htmlFor="categoryId"
             className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
@@ -133,7 +133,7 @@ export function ExpenseCreateForm({
           </select>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <label
             htmlFor="paymentMethod"
             className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
@@ -155,7 +155,7 @@ export function ExpenseCreateForm({
           </select>
         </div>
 
-        <div className="space-y-1.5 sm:col-span-2">
+        <div className="min-w-0 space-y-1.5 sm:col-span-2">
           <label
             htmlFor="note"
             className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
@@ -172,7 +172,7 @@ export function ExpenseCreateForm({
           />
         </div>
 
-        <div className="space-y-1.5 sm:col-span-2">
+        <div className="min-w-0 space-y-1.5 sm:col-span-2">
           <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">
             Receipt <span className="font-normal text-zinc-400">(optional)</span>
           </label>

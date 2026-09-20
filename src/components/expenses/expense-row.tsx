@@ -86,7 +86,7 @@ export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
         <form action={updateAction} className="space-y-3">
           <input type="hidden" name="id" value={expense.id} />
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                 Amount
               </label>
@@ -99,7 +99,7 @@ export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
                 className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
               />
             </div>
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                 Date
               </label>
@@ -108,10 +108,10 @@ export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
                 type="date"
                 required
                 defaultValue={expense.spentAt}
-                className="date-input w-full min-h-10 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50"
+                className="date-input block w-full max-w-full min-h-10 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50"
               />
             </div>
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                 Category
               </label>
@@ -128,7 +128,7 @@ export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
                 ))}
               </select>
             </div>
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                 Payment method
               </label>
@@ -145,7 +145,7 @@ export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
                 ))}
               </select>
             </div>
-            <div className="space-y-1 sm:col-span-2">
+            <div className="min-w-0 space-y-1 sm:col-span-2">
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                 Note
               </label>
@@ -157,7 +157,7 @@ export function ExpenseRow({ expense, categories }: ExpenseRowProps) {
                 className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
               />
             </div>
-            <div className="space-y-1 sm:col-span-2">
+            <div className="min-w-0 space-y-1 sm:col-span-2">
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                 Receipt
               </label>

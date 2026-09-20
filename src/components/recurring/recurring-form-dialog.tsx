@@ -228,7 +228,7 @@ export function RecurringFormDialog({
               </select>
             </div>
 
-            <div className="space-y-1.5 sm:col-span-2">
+            <div className="min-w-0 space-y-1.5 sm:col-span-2">
               <label
                 htmlFor="rec-nextDueDate"
                 className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
@@ -241,7 +241,7 @@ export function RecurringFormDialog({
                 type="date"
                 required
                 defaultValue={initialData?.nextDueDate ?? defaultDate}
-                className="date-input w-full min-h-10 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50"
+                className="date-input block w-full max-w-full min-h-10 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50"
               />
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                 An expense entry will be automatically generated whenever this date is reached or passed.

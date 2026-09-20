@@ -27,13 +27,36 @@ body {
 }
 
 /*
- * Native date/month pickers: in dark mode the calendar icon is often black and
- * invisible on dark inputs. Force a usable control + visible indicator.
+ * Native date/month pickers:
+ * 1. On iOS Safari, WebKit applies `-webkit-appearance: date-and-time-value`,
+ *    which ignores `box-sizing: border-box`. As a result, `width: 100%` plus
+ *    padding/borders causes the date input to overflow its parent container.
+ *    Resetting `-webkit-appearance: none` and setting `display: block`,
+ *    `box-sizing: border-box`, and `max-width: 100%` ensures it strictly
+ *    respects parent bounds.
+ * 2. In dark mode, ensure color-scheme is dark and invert the indicator icon.
  */
+input[type="date"],
+input[type="month"],
+.date-input {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 input[type="date"],
 input[type="month"] {
   min-height: 2.5rem;
   color-scheme: light;
+}
+
+/* Ensure date text aligns left and is vertically centered on iOS Safari */
+input[type="date"]::-webkit-date-and-time-value,
+input[type="month"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.25rem;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator,
