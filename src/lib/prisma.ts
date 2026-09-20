@@ -16,55 +16,41 @@ function createPrismaClient() {
 }
 
 /**
- * In dev, Next.js keeps a global Prisma client in globalThis across hot reloads.
- * After schema changes (e.g. adding PasswordResetToken, Budget, RecurringExpense),
- * that cached instance can be missing new model delegates (`prisma.passwordResetToken === undefined`).
- * We invalidate the cached client if any model delegate is missing.
+ * In dev, Next.js keeps a global Prisma client across hot reloads.
+ * After schema changes, that cached instance can be missing new model delegates.
+ * Drop and recreate the client only if known models are missing from the cache.
  */
-function getPrismaClient(requiredProp?: string | symbol): PrismaClient {
-  let cached = globalForPrisma.prisma;
+function getPrismaClient(): PrismaClient {
+  const cached = globalForPrisma.prisma;
 
-  const isMissingProp =
-    Boolean(cached) &&
-    Boolean(requiredProp) &&
-    typeof requiredProp === "string" &&
-    !requiredProp.startsWith("$") &&
-    !(requiredProp in (cached as unknown as Record<string, unknown>));
-
-  const isMissingKnownModels =
-    Boolean(cached) &&
-    (
-      !("category" in cached!) ||
-      !("expense" in cached!) ||
-      !("user" in cached!) ||
-      !("budget" in cached!) ||
-      !("recurringExpense" in cached!) ||
-      !("passwordResetToken" in cached!)
-    );
-
-  if (cached && (isMissingProp || isMissingKnownModels)) {
-    cached = undefined;
-    globalForPrisma.prisma = undefined;
+  if (
+    cached &&
+    typeof cached === "object" &&
+    "category" in cached &&
+    cached.category != null &&
+    "expense" in cached &&
+    cached.expense != null &&
+    "user" in cached &&
+    cached.user != null &&
+    "budget" in cached &&
+    cached.budget != null &&
+    "recurringExpense" in cached &&
+    cached.recurringExpense != null &&
+    "passwordResetToken" in cached &&
+    cached.passwordResetToken != null
+  ) {
+    return cached;
   }
 
-  if (!cached) {
-    cached = createPrismaClient();
-    if (process.env.NODE_ENV !== "production") {
-      globalForPrisma.prisma = cached;
-    }
+  const client = createPrismaClient();
+
+  if (process.env.NODE_ENV !== "production") {
+    globalForPrisma.prisma = client;
   }
 
-  return cached;
+  return client;
 }
 
-export const prisma = new Proxy({} as PrismaClient, {
-  get(_target, prop) {
-    const client = getPrismaClient(prop);
-    const value = Reflect.get(client, prop);
-    if (typeof value === "function") {
-      return value.bind(client);
-    }
-    return value;
-  },
-});
+export const prisma = getPrismaClient();
+
 
