@@ -114,7 +114,7 @@ export function BudgetCategoryRow({
           <input type="hidden" name="year" value={year} />
           <input type="hidden" name="month" value={month} />
           <input type="hidden" name="categoryId" value={item.categoryId} />
-          <div className="min-w-0 flex-1 space-y-1">
+          <div className="w-full min-w-0 flex-1 space-y-1">
             <label
               htmlFor={`amount-${item.categoryId}`}
               className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
@@ -130,7 +130,7 @@ export function BudgetCategoryRow({
               autoFocus
               defaultValue={item.amount ?? ""}
               placeholder="0.00"
-              className="min-h-10 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+              className="min-h-10 w-full max-w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
             />
           </div>
           <div className="flex gap-2">

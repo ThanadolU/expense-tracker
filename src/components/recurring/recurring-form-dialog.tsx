@@ -228,7 +228,7 @@ export function RecurringFormDialog({
               </select>
             </div>
 
-            <div className="space-y-1.5 sm:col-span-2">
+            <div className="min-w-0 space-y-1.5 sm:col-span-2">
               <label
                 htmlFor="rec-nextDueDate"
                 className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
@@ -241,7 +241,7 @@ export function RecurringFormDialog({
                 type="date"
                 required
                 defaultValue={initialData?.nextDueDate ?? defaultDate}
-                className="date-input w-full min-h-10 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50"
+                className="date-input block w-full max-w-full min-h-10 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50"
               />
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                 An expense entry will be automatically generated whenever this date is reached or passed.
@@ -279,9 +279,38 @@ export function RecurringFormDialog({
             <button
               type="submit"
               disabled={pending}
-              className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
             >
-              {pending ? "Saving…" : isEditing ? "Save changes" : "Create template"}
+              {pending ? (
+                <>
+                  <svg
+                    className="h-4 w-4 animate-spin text-white dark:text-zinc-900"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  <span>Saving…</span>
+                </>
+              ) : isEditing ? (
+                "Save changes"
+              ) : (
+                "Create template"
+              )}
             </button>
           </div>
         </form>

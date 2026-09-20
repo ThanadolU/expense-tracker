@@ -21,7 +21,7 @@ export function MonthPicker({
       action={action}
       className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-end"
     >
-      <div className="min-w-0 flex-1 space-y-1 sm:flex-none">
+      <div className="w-full min-w-0 space-y-1 sm:w-auto sm:flex-none">
         <label
           htmlFor="month"
           className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
@@ -34,7 +34,7 @@ export function MonthPicker({
           type="month"
           required
           defaultValue={toMonthInputValue(year, month)}
-          className="date-input min-h-11 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 sm:w-auto dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50"
+          className="date-input block min-h-11 w-full max-w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 sm:w-auto dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50"
         />
       </div>
       <button

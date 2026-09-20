@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, type ChangeEvent } from "react";
+import { useState, useRef, useEffect, useCallback, type ChangeEvent } from "react";
 
 type ReceiptUploadInputProps = {
   name?: string;
@@ -28,12 +28,39 @@ export function ReceiptUploadInput({
     };
   }, [previewUrl]);
 
+  const handleClearSelected = useCallback(() => {
+    setPreviewUrl((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return null;
+    });
+    setSelectedFile(null);
+    setError(null);
+    setRemoveExisting(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, []);
+
+  // Automatically clear input and preview when the parent form resets
+  useEffect(() => {
+    const form = fileInputRef.current?.form;
+    if (!form) return;
+    form.addEventListener("reset", handleClearSelected);
+    return () => {
+      form.removeEventListener("reset", handleClearSelected);
+    };
+  }, [handleClearSelected]);
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     setError(null);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-    }
+    setPreviewUrl((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return null;
+    });
 
     const file = e.target.files?.[0];
     if (!file) {
@@ -51,28 +78,19 @@ export function ReceiptUploadInput({
 
     setSelectedFile(file);
     if (file.type.startsWith("image/")) {
-      setPreviewUrl(URL.createObjectURL(file));
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
     }
     setRemoveExisting(false);
   };
 
-  const handleClearSelected = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-    }
-    setSelectedFile(null);
-    setError(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
   const handleToggleRemoveExisting = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-    }
+    setPreviewUrl((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return null;
+    });
     setRemoveExisting((prev) => !prev);
     setSelectedFile(null);
     if (fileInputRef.current) {

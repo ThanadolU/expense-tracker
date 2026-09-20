@@ -100,13 +100,13 @@ export default async function ExpensesPage({
   ].join(" · ");
 
   const emptyMessage = isUnfiltered
-    ? "No expenses yet. Add one above to start tracking."
+    ? "No expenses yet. Add one to start tracking."
     : `No expenses for this filter (${filterSummary}).`;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
+        <div className="w-full space-y-2 sm:w-[25vw]">
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
             Expenses
           </h1>
@@ -116,6 +116,7 @@ export default async function ExpensesPage({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:self-start">
+          <ExpenseCreateForm categories={categoryOptions} defaultDate={today} />
           <Link
             href="/recurring"
             className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-zinc-200 bg-white px-3.5 py-2 text-sm font-medium text-zinc-700 shadow-xs transition hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
@@ -161,8 +162,6 @@ export default async function ExpensesPage({
           </a>
         </div>
       </div>
-
-      <ExpenseCreateForm categories={categoryOptions} defaultDate={today} />
 
       <div className="space-y-3">
         <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
