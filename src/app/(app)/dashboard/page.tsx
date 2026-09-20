@@ -1,11 +1,13 @@
+import { BudgetSummary } from "@/components/dashboard/budget-summary";
 import { CategoryBreakdown } from "@/components/dashboard/category-breakdown";
 import { DailySpendLineChart } from "@/components/dashboard/daily-spend-line-chart";
 import { EmptyMonth } from "@/components/dashboard/empty-month";
 import { MonthPicker } from "@/components/dashboard/month-picker";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
+import { getBudgetSummaryForMonth } from "@/lib/actions/budgets";
 import { requireUserId } from "@/lib/auth-utils";
 import { getMonthlyDashboardFrom } from "@/lib/dashboard";
-import { resolveYearMonth } from "@/lib/dates";
+import { resolveYearMonth, toMonthInputValueFrom } from "@/lib/dates";
 
 type DashboardPageProps = {
   searchParams: Promise<{ month?: string }>;
@@ -17,7 +19,10 @@ export default async function DashboardPage({
   const userId = await requireUserId();
   const params = await searchParams;
   const ym = resolveYearMonth(params.month);
-  const dashboard = await getMonthlyDashboardFrom(userId, ym);
+  const [dashboard, budgetSummary] = await Promise.all([
+    getMonthlyDashboardFrom(userId, ym),
+    getBudgetSummaryForMonth(userId, ym.year, ym.month),
+  ]);
 
   const isEmpty = dashboard.expenseCount === 0;
 
@@ -40,6 +45,12 @@ export default async function DashboardPage({
         total={dashboard.total}
         currency={dashboard.currency}
         expenseCount={dashboard.expenseCount}
+      />
+
+      <BudgetSummary
+        summary={budgetSummary}
+        currency={dashboard.currency}
+        monthParam={toMonthInputValueFrom(ym)}
       />
 
       {isEmpty ? (

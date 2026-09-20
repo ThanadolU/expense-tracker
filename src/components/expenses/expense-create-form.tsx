@@ -9,6 +9,7 @@ import {
   DEFAULT_PAYMENT_METHOD,
   PAYMENT_METHODS,
 } from "@/lib/payment-methods";
+import { ReceiptUploadInput } from "@/components/expenses/receipt-upload-input";
 
 export type CategoryOption = {
   id: string;
@@ -169,6 +170,13 @@ export function ExpenseCreateForm({
             placeholder="Lunch, taxi, …"
             className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
           />
+        </div>
+
+        <div className="space-y-1.5 sm:col-span-2">
+          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+            Receipt <span className="font-normal text-zinc-400">(optional)</span>
+          </label>
+          <ReceiptUploadInput disabled={pending} />
         </div>
       </div>
 

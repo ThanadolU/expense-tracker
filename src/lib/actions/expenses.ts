@@ -10,6 +10,7 @@ import {
   type PaymentMethodId,
 } from "@/lib/payment-methods";
 import { prisma } from "@/lib/prisma";
+import { deleteReceiptFromR2, uploadReceiptToR2 } from "@/lib/r2";
 
 export type ExpenseFormState = {
   error?: string;
@@ -130,6 +131,18 @@ export async function createExpenseAction(
     return { error: paymentMethod.error };
   }
 
+  let receiptKey: string | null = null;
+  let receiptUrl: string | null = null;
+  const receiptEntry = formData.get("receipt");
+  if (receiptEntry instanceof File && receiptEntry.size > 0) {
+    const uploadRes = await uploadReceiptToR2(receiptEntry, userId);
+    if (!uploadRes.ok) {
+      return { error: uploadRes.error };
+    }
+    receiptKey = uploadRes.key;
+    receiptUrl = uploadRes.url || null;
+  }
+
   await prisma.expense.create({
     data: {
       userId,
@@ -139,6 +152,8 @@ export async function createExpenseAction(
       paymentMethod: paymentMethod.value,
       spentAt: spentAt.value,
       note: noteRaw.length > 0 ? noteRaw : null,
+      receiptKey,
+      receiptUrl,
     },
   });
 
@@ -198,6 +213,30 @@ export async function updateExpenseAction(
     return { error: paymentMethod.error };
   }
 
+  let receiptKey = existing.receiptKey;
+  let receiptUrl = existing.receiptUrl;
+
+  const removeReceipt = readString(formData.get("removeReceipt")) === "true";
+  const receiptEntry = formData.get("receipt");
+
+  if (removeReceipt) {
+    if (existing.receiptKey) {
+      await deleteReceiptFromR2(existing.receiptKey);
+    }
+    receiptKey = null;
+    receiptUrl = null;
+  } else if (receiptEntry instanceof File && receiptEntry.size > 0) {
+    const uploadRes = await uploadReceiptToR2(receiptEntry, userId);
+    if (!uploadRes.ok) {
+      return { error: uploadRes.error };
+    }
+    if (existing.receiptKey) {
+      await deleteReceiptFromR2(existing.receiptKey);
+    }
+    receiptKey = uploadRes.key;
+    receiptUrl = uploadRes.url || null;
+  }
+
   await prisma.expense.update({
     where: { id },
     data: {
@@ -206,6 +245,8 @@ export async function updateExpenseAction(
       paymentMethod: paymentMethod.value,
       spentAt: spentAt.value,
       note: noteRaw.length > 0 ? noteRaw : null,
+      receiptKey,
+      receiptUrl,
     },
   });
 
@@ -231,6 +272,10 @@ export async function deleteExpenseAction(
     return { error: "Expense not found." };
   }
 
+  if (existing.receiptKey) {
+    await deleteReceiptFromR2(existing.receiptKey);
+  }
+
   await prisma.expense.delete({
     where: { id },
   });
@@ -248,7 +293,7 @@ export type ListExpensesFilters = {
   paymentMethod?: PaymentMethodId | null;
 };
 
-export async function listExpensesForUser(
+async function buildExpenseWhere(
   userId: string,
   filters: ListExpensesFilters = {},
 ) {
@@ -277,6 +322,15 @@ export async function listExpensesForUser(
     where.paymentMethod = filters.paymentMethod;
   }
 
+  return where;
+}
+
+export async function listExpensesForUser(
+  userId: string,
+  filters: ListExpensesFilters = {},
+) {
+  const where = await buildExpenseWhere(userId, filters);
+
   return prisma.expense.findMany({
     where,
     include: {
@@ -286,3 +340,23 @@ export async function listExpensesForUser(
     take: LIST_LIMIT,
   });
 }
+
+/**
+ * Fetch all matching expenses for export without the LIST_LIMIT cap.
+ * Scoped strictly to the authenticated user and matches active filter criteria.
+ */
+export async function exportExpensesForUser(
+  userId: string,
+  filters: ListExpensesFilters = {},
+) {
+  const where = await buildExpenseWhere(userId, filters);
+
+  return prisma.expense.findMany({
+    where,
+    include: {
+      category: { select: { id: true, name: true } },
+    },
+    orderBy: [{ spentAt: "desc" }, { createdAt: "desc" }],
+  });
+}
+

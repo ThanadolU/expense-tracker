@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { AppNav } from "@/components/app-nav";
+import { processDueRecurringExpenses } from "@/lib/recurring";
 
 export default async function AppLayout({
   children,
@@ -8,9 +9,11 @@ export default async function AppLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-  if (!session?.user) {
+  if (!session?.user?.id) {
     redirect("/login");
   }
+
+  await processDueRecurringExpenses(session.user.id);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50 dark:bg-zinc-950">

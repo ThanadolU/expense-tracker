@@ -11,25 +11,30 @@ datasource db {
 }
 
 model User {
-  id           String     @id @default(cuid())
-  email        String     @unique
-  passwordHash String
-  name         String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  categories   Category[]
-  expenses     Expense[]
+  id                String             @id @default(cuid())
+  email             String             @unique
+  passwordHash      String
+  name              String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  categories        Category[]
+  expenses          Expense[]
+  budgets           Budget[]
+  recurringExpenses RecurringExpense[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Category {
-  id        String    @id @default(cuid())
-  userId    String
-  name      String
-  color     String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expenses  Expense[]
+  id                String             @id @default(cuid())
+  userId            String
+  name              String
+  color             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses          Expense[]
+  budgets           Budget[]
+  recurringExpenses RecurringExpense[]
 
   @@unique([userId, name])
   @@index([userId])
@@ -55,21 +60,92 @@ enum PaymentMethod {
   OTHER
 }
 
+enum RecurringCadence {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
 model Expense {
-  id            String         @id @default(cuid())
-  userId        String
-  categoryId    String
-  amount        Decimal        @db.Decimal(12, 2)
-  currency      String         @default("THB")
-  paymentMethod PaymentMethod  @default(CASH)
-  spentAt       DateTime       @db.Date
-  note          String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category      Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  id                 String            @id @default(cuid())
+  userId             String
+  categoryId         String
+  amount             Decimal           @db.Decimal(12, 2)
+  currency           String            @default("THB")
+  paymentMethod      PaymentMethod     @default(CASH)
+  spentAt            DateTime          @db.Date
+  note               String?
+  receiptUrl         String?
+  receiptKey         String?
+  recurringExpenseId String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category           Category          @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  recurringExpense   RecurringExpense? @relation(fields: [recurringExpenseId], references: [id], onDelete: SetNull)
 
   @@index([userId, spentAt])
   @@index([userId, categoryId])
   @@index([userId, paymentMethod])
+  @@index([userId, recurringExpenseId])
 }
+
+model Budget {
+  id         String    @id @default(cuid())
+  userId     String
+  year       Int
+  month      Int // 1–12
+  /// null = overall monthly budget; set = that category only
+  categoryId String?
+  amount     Decimal   @db.Decimal(12, 2)
+  currency   String    @default("THB")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  // Covers category budgets; overall budget (categoryId null) uniqueness
+  // is enforced in app code since Postgres treats NULL as distinct.
+  @@unique([userId, year, month, categoryId])
+  @@index([userId, year, month])
+}
+
+model RecurringExpense {
+  id              String           @id @default(cuid())
+  userId          String
+  title           String
+  amount          Decimal          @db.Decimal(12, 2)
+  currency        String           @default("THB")
+  categoryId      String
+  paymentMethod   PaymentMethod    @default(CASH)
+  cadence         RecurringCadence @default(MONTHLY)
+  startDate       DateTime         @db.Date
+  nextDueDate     DateTime         @db.Date
+  lastGeneratedAt DateTime?
+  isActive        Boolean          @default(true)
+  note            String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category        Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  expenses        Expense[]
+
+  @@index([userId, isActive])
+  @@index([userId, nextDueDate])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
