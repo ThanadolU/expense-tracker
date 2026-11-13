@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 type ReceiptModalProps = {
   isOpen: boolean;
@@ -15,6 +15,12 @@ export function ReceiptModal({
   receiptUrl,
   title = "Receipt",
 }: ReceiptModalProps) {
+  // Keyed by URL so a different receipt automatically shows the spinner again.
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const isImageLoading = loadedUrl !== receiptUrl && failedUrl !== receiptUrl;
+  const isImageFailed = failedUrl === receiptUrl;
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -99,12 +105,54 @@ export function ReceiptModal({
               title="Receipt PDF"
             />
           ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={receiptUrl}
-              alt="Receipt preview"
-              className="max-h-[70vh] w-auto max-w-full rounded-md object-contain shadow-sm"
-            />
+            <>
+              {isImageLoading && (
+                <div
+                  className="flex h-48 w-full items-center justify-center"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <svg
+                    className="h-8 w-8 animate-spin text-zinc-400 dark:text-zinc-500"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    />
+                  </svg>
+                  <span className="sr-only">Loading receipt…</span>
+                </div>
+              )}
+              {isImageFailed ? (
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  Failed to load receipt image.
+                </p>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={receiptUrl}
+                  alt="Receipt preview"
+                  onLoad={() => setLoadedUrl(receiptUrl)}
+                  onError={() => setFailedUrl(receiptUrl)}
+                  className={`max-h-[70vh] w-auto max-w-full rounded-md object-contain shadow-sm ${
+                    isImageLoading ? "hidden" : ""
+                  }`}
+                />
+              )}
+            </>
           )}
         </div>
       </div>
