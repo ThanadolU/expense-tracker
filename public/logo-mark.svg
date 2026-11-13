@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Expense Tracker">
+  <title>Expense Tracker</title>
+  <style>
+    .tile { fill: #18181b; }      /* zinc-900 */
+    .paper { fill: #fafafa; }     /* zinc-50 */
+    .line { fill: #a1a1aa; }      /* zinc-400 */
+    .total { fill: #10b981; }     /* emerald-500 */
+    @media (prefers-color-scheme: dark) {
+      .tile { fill: #f4f4f5; }    /* zinc-100 */
+      .paper { fill: #18181b; }   /* zinc-900 */
+      .line { fill: #71717a; }    /* zinc-500 */
+      .total { fill: #34d399; }   /* emerald-400 */
+    }
+  </style>
+  <!-- App tile (matches rounded-xl cards) -->
+  <rect class="tile" width="64" height="64" rx="14"/>
+  <!-- Receipt with torn zig-zag bottom -->
+  <path class="paper" d="M22 12H42A2 2 0 0 1 44 14V52L42 49.5L40 52L38 49.5L36 52L34 49.5L32 52L30 49.5L28 52L26 49.5L24 52L22 49.5L20 52V14A2 2 0 0 1 22 12Z"/>
+  <!-- Line items -->
+  <rect class="line" x="25" y="19" width="14" height="3" rx="1.5"/>
+  <rect class="line" x="25" y="25.5" width="9" height="3" rx="1.5"/>
+  <rect class="line" x="25" y="32" width="11.5" height="3" rx="1.5"/>
+  <!-- Total (emerald accent) -->
+  <rect class="total" x="25" y="40" width="14" height="4" rx="2"/>
+</svg>
