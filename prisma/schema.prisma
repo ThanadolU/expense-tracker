@@ -22,6 +22,13 @@ model User {
   budgets           Budget[]
   recurringExpenses RecurringExpense[]
   passwordResetTokens PasswordResetToken[]
+  createdHouseholds   Household[]          @relation("HouseholdCreator")
+  householdMembers    HouseholdMember[]
+  sentHouseholdInvites HouseholdInvite[]   @relation("InvitedByUser")
+  householdExpensesPaid HouseholdExpense[] @relation("HouseholdExpensePayer")
+  householdSplits     HouseholdExpenseSplit[] @relation("HouseholdSplitUser")
+  settlementsPaid     HouseholdSettlement[] @relation("SettlementFromUser")
+  settlementsReceived HouseholdSettlement[] @relation("SettlementToUser")
 }
 
 model Category {
@@ -148,4 +155,135 @@ model PasswordResetToken {
   @@index([userId])
   @@index([expiresAt])
 }
+
+enum HouseholdRole {
+  OWNER
+  MEMBER
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
+model Household {
+  id          String            @id @default(cuid())
+  name        String
+  currency    String            @default("THB")
+  createdById String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  createdBy   User              @relation("HouseholdCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  members     HouseholdMember[]
+  invites     HouseholdInvite[]
+  expenses    HouseholdExpense[]
+  settlements HouseholdSettlement[]
+
+  @@index([createdById])
+}
+
+model HouseholdMember {
+  id          String        @id @default(cuid())
+  householdId String
+  userId      String
+  role        HouseholdRole @default(MEMBER)
+  joinedAt    DateTime      @default(now())
+
+  household   Household     @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([householdId, userId])
+  @@index([userId])
+  @@index([householdId])
+}
+
+model HouseholdInvite {
+  id          String        @id @default(cuid())
+  householdId String
+  email       String
+  role        HouseholdRole @default(MEMBER)
+  status      InviteStatus  @default(PENDING)
+  token       String        @unique
+  invitedById String
+  expiresAt   DateTime
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  household   Household     @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  invitedBy   User          @relation("InvitedByUser", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([householdId, status])
+}
+
+enum HouseholdSplitType {
+  EQUAL
+  FULL
+}
+
+model HouseholdExpense {
+  id          String                  @id @default(cuid())
+  householdId String
+  paidById    String
+  amount      Decimal                 @db.Decimal(12, 2)
+  currency    String                  @default("THB")
+  description String
+  category    String?
+  spentAt     DateTime                @db.Date
+  splitType   HouseholdSplitType      @default(EQUAL)
+  receiptUrl  String?
+  receiptKey  String?
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+
+  household   Household               @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  paidBy      User                    @relation("HouseholdExpensePayer", fields: [paidById], references: [id], onDelete: Cascade)
+  splits      HouseholdExpenseSplit[]
+
+  @@index([householdId, spentAt])
+  @@index([paidById])
+}
+
+model HouseholdExpenseSplit {
+  id                 String           @id @default(cuid())
+  householdExpenseId String
+  userId             String
+  amount             Decimal          @db.Decimal(12, 2)
+  isSettled          Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  expense            HouseholdExpense @relation(fields: [householdExpenseId], references: [id], onDelete: Cascade)
+  user               User             @relation("HouseholdSplitUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([householdExpenseId, userId])
+  @@index([userId])
+  @@index([householdExpenseId])
+}
+
+model HouseholdSettlement {
+  id          String    @id @default(cuid())
+  householdId String
+  fromUserId  String
+  toUserId    String
+  amount      Decimal   @db.Decimal(12, 2)
+  currency    String    @default("THB")
+  settledAt   DateTime  @default(now())
+  note        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  fromUser    User      @relation("SettlementFromUser", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser      User      @relation("SettlementToUser", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([householdId, settledAt])
+  @@index([fromUserId])
+  @@index([toUserId])
+}
+
+
 

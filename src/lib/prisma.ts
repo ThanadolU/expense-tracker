@@ -37,7 +37,19 @@ function getPrismaClient(): PrismaClient {
     "recurringExpense" in cached &&
     cached.recurringExpense != null &&
     "passwordResetToken" in cached &&
-    cached.passwordResetToken != null
+    cached.passwordResetToken != null &&
+    "household" in cached &&
+    cached.household != null &&
+    "householdMember" in cached &&
+    cached.householdMember != null &&
+    "householdInvite" in cached &&
+    cached.householdInvite != null &&
+    "householdExpense" in cached &&
+    cached.householdExpense != null &&
+    "householdExpenseSplit" in cached &&
+    cached.householdExpenseSplit != null &&
+    "householdSettlement" in cached &&
+    cached.householdSettlement != null
   ) {
     return cached;
   }

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 288 64" fill="none" role="img" aria-label="Expense Tracker">
+  <title>Expense Tracker</title>
+  <!-- Mark (inverted for dark backgrounds) -->
+  <rect width="64" height="64" rx="14" fill="#f4f4f5"/>
+  <path fill="#18181b" d="M22 12H42A2 2 0 0 1 44 14V52L42 49.5L40 52L38 49.5L36 52L34 49.5L32 52L30 49.5L28 52L26 49.5L24 52L22 49.5L20 52V14A2 2 0 0 1 22 12Z"/>
+  <rect fill="#71717a" x="25" y="19" width="14" height="3" rx="1.5"/>
+  <rect fill="#71717a" x="25" y="25.5" width="9" height="3" rx="1.5"/>
+  <rect fill="#71717a" x="25" y="32" width="11.5" height="3" rx="1.5"/>
+  <rect fill="#34d399" x="25" y="40" width="14" height="4" rx="2"/>
+  <!-- Wordmark -->
+  <text x="80" y="41.5" font-family="Geist, 'Geist Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif" font-size="27" font-weight="600" letter-spacing="-0.6">
+    <tspan fill="#fafafa">Expense</tspan><tspan fill="#a1a1aa" dx="7">Tracker</tspan>
+  </text>
+</svg>
