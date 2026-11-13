@@ -10,6 +10,7 @@ const navItems = [
   { href: "/recurring", label: "Recurring" },
   { href: "/budgets", label: "Budgets" },
   { href: "/categories", label: "Categories" },
+  { href: "/households", label: "Households" },
 ] as const;
 
 type AppNavProps = {
