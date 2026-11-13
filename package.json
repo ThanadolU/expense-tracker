@@ -11,7 +11,8 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "db:pull-prod": "bash scripts/pull-prod-db.sh"
+    "db:pull-prod": "bash scripts/pull-prod-db.sh",
+    "icons:generate": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1131.0",
