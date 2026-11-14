@@ -16,12 +16,12 @@ export default async function AppLayout({
   await processDueRecurringExpenses(session.user.id);
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex min-h-screen flex-1 flex-col bg-zinc-50 dark:bg-zinc-950">
       <AppNav
         userEmail={session.user.email}
         userName={session.user.name}
       />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 pb-24 md:pb-8 sm:px-6 sm:py-8">
         {children}
       </main>
     </div>
